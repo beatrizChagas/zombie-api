@@ -1,6 +1,6 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
-require 'database_cleaner'
+require 'database_cleaner-active_record'
 require 'faker'
 require 'shoulda/matchers'
 ENV['RAILS_ENV'] ||= 'test'
