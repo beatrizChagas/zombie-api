@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :inventory do
-    items {
+    items do
       {
         'water' => {
           'points' => 4,
@@ -19,7 +19,7 @@ FactoryBot.define do
           'quantity' => 1
         }
       }
-    }
+    end
     user { create(:user) }
   end
 end
