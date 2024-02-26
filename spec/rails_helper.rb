@@ -2,6 +2,7 @@
 require 'spec_helper'
 require 'database_cleaner'
 require 'faker'
+require 'shoulda/matchers'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }
@@ -75,4 +76,11 @@ RSpec.configure do |config|
 
   # Start the transaction strategy as examples are run
   config.around(:each) { |example| DatabaseCleaner.cleaning { example.run } }
+end
+
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :rails
+  end
 end
