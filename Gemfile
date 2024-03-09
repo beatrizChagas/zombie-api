@@ -35,6 +35,8 @@ group :development, :test do
 
   # Generate fake data
   gem "faker"
+
+  gem 'rack-cors'
 end
 
 group :test do
