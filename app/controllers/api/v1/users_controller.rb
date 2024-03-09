@@ -14,6 +14,15 @@ module Api
         end
       end
 
+      # PUT /users/:id
+      def update
+        @user = User.find(params[:id])
+
+        @user.update(user_params)
+
+        head :no_content
+      end
+
       private
 
       def user_params
