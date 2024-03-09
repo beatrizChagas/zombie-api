@@ -5,8 +5,5 @@ class Inventory < ApplicationRecord
 
   belongs_to :user
 
-  serialize :items,
-            coder: JSON,
-            type: Hash,
-            default: ITEMS
+  serialize :items, coder: JSON, type: Hash, default: {}
 end
