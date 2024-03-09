@@ -16,7 +16,7 @@ RSpec.describe 'api/v1/users', type: :request do
           latitude: { type: :number, format: :float },
           longitude: { type: :number, format: :float }
         },
-        required: ['name', 'age', 'gender', 'latitude', 'longitude']
+        required: %w[name age gender latitude longitude]
       }
 
       response '201', 'user created' do
