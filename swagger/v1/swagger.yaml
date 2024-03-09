@@ -39,6 +39,36 @@ paths:
               - gender
               - latitude
               - longitude
+  "/api/v1/users/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: integer
+    put:
+      summary: Updates a user location
+      tags:
+      - Users
+      parameters: []
+      responses:
+        '204':
+          description: user location updated
+        '404':
+          description: user not found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                  format: float
+                longitude:
+                  type: number
+                  format: float
 servers:
 - url: http://{defaultHost}
   variables:
