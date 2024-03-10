@@ -4,6 +4,37 @@ info:
   title: API V1
   version: v1
 paths:
+  "/api/v1/users/{user_id}/infection":
+    parameters:
+    - name: user_id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: integer
+    post:
+      summary: Reports an infected user
+      tags:
+      - Users
+      parameters: []
+      responses:
+        '201':
+          description: infection reported
+        '422':
+          description: invalid request when reported user does not exist
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                infected_user_id:
+                  type: integer
+              required:
+              - user_id
+              - infected_user_id
   "/api/v1/users":
     post:
       summary: Creates a user
