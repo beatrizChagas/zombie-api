@@ -12,7 +12,7 @@ class User < ApplicationRecord
   validates :age, :gender, :latitude, :longitude, presence: true
 
   def infected?
-    Infection.where(infected_user: self).distinct.count >= 3
+    Infection.where(infected_user: self).pluck(:user_id).uniq.count >= 3
   end
 
   private
