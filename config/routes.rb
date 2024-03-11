@@ -21,6 +21,7 @@ Rails.application.routes.draw do
 
       resource :report, only: [] do
         get 'infected_users'
+        get 'non_infected_users'
       end
     end
   end
