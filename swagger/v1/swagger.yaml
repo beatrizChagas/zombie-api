@@ -35,6 +35,68 @@ paths:
               required:
               - user_id
               - infected_user_id
+  "/api/v1/users/{user_id}/inventory/add_item":
+    parameters:
+    - name: user_id
+      in: path
+      description: user id
+      required: true
+      schema:
+        type: integer
+    post:
+      summary: Add items to inventory
+      tags:
+      - Inventory
+      parameters: []
+      responses:
+        '201':
+          description: water quantity sucessfully increased
+        '422':
+          description: invalid request when item key is not permitted
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: object
+                user_id:
+                  type: integer
+              required:
+              - items
+              - user_id
+  "/api/v1/users/{user_id}/inventory/remove_item":
+    parameters:
+    - name: user_id
+      in: path
+      description: user id
+      required: true
+      schema:
+        type: integer
+    post:
+      summary: Remove items from inventory
+      tags:
+      - Inventory
+      parameters: []
+      responses:
+        '200':
+          description: water quantity sucessfully decreased
+        '422':
+          description: invalid request when item key is not permitted
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: object
+                user_id:
+                  type: integer
+              required:
+              - items
+              - user_id
   "/api/v1/users":
     post:
       summary: Creates a user
