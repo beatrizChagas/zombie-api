@@ -30,6 +30,26 @@ module Api
         end
       end
 
+      # POST /users/:user_id/inventory/remove_item
+      def remove_item
+        @inventory = Inventory.find_by(user_id: params[:user_id])
+
+        if @inventory && item_exists?
+          decrement_quantity(params[:items][key][:quantity])
+
+          update_item_points
+
+          if @inventory.save
+            render json: InventoryBlueprint.render(@inventory), status: :ok
+          else
+            render @inventory.errors, status: :unprocessable_entity
+          end
+        else
+          render json: { error: 'Inventory not found or item does not exist' },
+                 status: :unprocessable_entity
+        end
+      end
+
       private
 
       def inventory_params
@@ -63,6 +83,10 @@ module Api
 
       def increment_quantity(value)
         @inventory.items[key]['quantity'] += value
+      end
+
+      def decrement_quantity(value)
+        @inventory.items[key]['quantity'] -= value
       end
     end
   end
