@@ -25,7 +25,18 @@ module Api
         if @users > 0
           percentage = (non_infected_users_count.to_f / @users) * 100
 
-          render json: { percentage: percentage }, status: :ok
+          render json: { Percentage: percentage }, status: :ok
+        else
+          render json: { error: 'No users found' }, status: :not_found
+        end
+      end
+
+      # GET report/item_average_per_user
+      def item_average_per_user
+        items_average = Inventory.average_items_quantity_per_user
+
+        if @users > 0
+          render json: { 'Items average': items_average }, status: :ok
         else
           render json: { error: 'No users found' }, status: :not_found
         end
