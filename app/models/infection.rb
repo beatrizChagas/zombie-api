@@ -11,4 +11,12 @@ class Infection < ApplicationRecord
 
     User.where(id: infected_user_ids).count
   end
+
+  def self.non_infected_users_count
+    infected_users = group(:infected_user_id).distinct.count(:user_id)
+
+    infected_user_ids = infected_users.select { |infected_user_id, count| count >= 3 }.keys
+
+    User.where.not(id: infected_user_ids).count
+  end
 end
