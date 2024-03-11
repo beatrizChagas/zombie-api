@@ -5,6 +5,8 @@ module Api
     class InventoriesController < ApplicationController
       include InventoryHelper
 
+      before_action :allow_user, only: %i[add_item remove_item]
+
       # POST /users/:user_id/inventory/add_item
       def add_item
         @inventory = Inventory.find_by(user_id: params[:user_id])
@@ -87,6 +89,13 @@ module Api
 
       def decrement_quantity(value)
         @inventory.items[key]['quantity'] -= value
+      end
+
+      def allow_user
+        user = User.find(params[:user_id])
+        if user.infected?
+          render json: { error: 'You are not authorized to access add/remove items' }, status: :forbidden
+        end
       end
     end
   end
