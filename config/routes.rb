@@ -14,6 +14,7 @@ Rails.application.routes.draw do
         resource :inventory, only: [] do
           member do
             post 'add_item'
+            post 'remove_item'
           end
         end
       end
