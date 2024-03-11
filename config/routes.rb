@@ -11,6 +11,11 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :users, only: %i[create update] do
         resource :infection, only: :create
+        resource :inventory, only: [] do
+          member do
+            post 'add_item'
+          end
+        end
       end
     end
   end
