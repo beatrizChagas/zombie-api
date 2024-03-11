@@ -18,6 +18,10 @@ Rails.application.routes.draw do
           end
         end
       end
+
+      resource :report, only: [] do
+        get 'infected_users'
+      end
     end
   end
 end
