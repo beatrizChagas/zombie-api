@@ -97,6 +97,36 @@ paths:
               required:
               - items
               - user_id
+  "/api/v1/report/infected_users":
+    get:
+      summary: Infected users percentage
+      tags:
+      - Report
+      responses:
+        '200':
+          description: returns 0.0% users infected
+        '404':
+          description: user not found
+  "/api/v1/report/non_infected_users":
+    get:
+      summary: Non-Infected users percentage
+      tags:
+      - Report
+      responses:
+        '200':
+          description: returns 100.0% non-infected users
+        '404':
+          description: user not found
+  "/api/v1/report/item_average_per_user":
+    get:
+      summary: Average items per user
+      tags:
+      - Report
+      responses:
+        '200':
+          description: average items users
+        '404':
+          description: user not found
   "/api/v1/users":
     post:
       summary: Creates a user
