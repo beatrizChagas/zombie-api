@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       resource :report, only: [] do
         get 'infected_users'
         get 'non_infected_users'
+        get 'item_average_per_user'
       end
     end
   end
