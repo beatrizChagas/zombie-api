@@ -42,6 +42,16 @@ module Api
         end
       end
 
+      def number_of_lost_points_by_infected_users
+        if @users > 0
+          lost_points = Infection.lost_points
+
+          render json: { 'Total lost points': lost_points }, status: :ok
+        else
+          render json: { error: 'No users found' }, status: :not_found
+        end
+      end
+
       private
 
       def users_count

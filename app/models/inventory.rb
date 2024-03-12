@@ -64,6 +64,16 @@ class Inventory < ApplicationRecord
     self.save
   end
 
+  def total_points
+    total_points = 0
+
+    items.each do |key, value|
+      total_points += Inventory.calculate_point(key, value['quantity'])
+    end
+
+    total_points
+  end
+
   private
 
   def self.total_quantity_per_user(items)
