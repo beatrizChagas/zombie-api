@@ -73,5 +73,38 @@ RSpec.describe 'api/v1/report/', type: :request do
         run_test!
       end
     end
+
+    path '/api/v1/report/number_of_lost_points_by_infected_users' do
+      get 'Number of lost points by infected users' do
+        tags 'Report'
+        consumes 'application/json'
+
+        response '200', 'number of lost points' do
+          let(:user) { create(:user) }
+          let(:user2) { create(:user) }
+          let(:user3) { create(:user) }
+          let(:user4) { create(:user) }
+
+          let(:items) { { 'water' => { 'quantity' => 2 } } }
+          let(:inventory) { { 'items' => items, user_id: user.id } }
+
+          before { post "/api/v1/users/#{user.id}/inventory/add_item", params: inventory }
+          before { post "/api/v1/users/#{user2.id}/infection", params: { user_id: user2.id, infected_user_id: user.id } }
+          before { post "/api/v1/users/#{user3.id}/infection", params: { user_id: user3.id, infected_user_id: user.id } }
+          before { post "/api/v1/users/#{user4.id}/infection", params: { user_id: user4.id, infected_user_id: user.id } }
+          before { get '/api/v1/report/number_of_lost_points_by_infected_users', params: user }
+
+          run_test! do |response|
+            data = response.parsed_body
+
+            expect(data).to eq('Total lost points' => 8)
+          end
+        end
+
+        response '404', 'user not found' do
+          run_test!
+        end
+      end
+    end
   end
 end

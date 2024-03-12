@@ -168,6 +168,16 @@ paths:
           description: average items users
         '404':
           description: user not found
+  "/api/v1/report/number_of_lost_points_by_infected_users":
+    get:
+      summary: Number of lost points by infected users
+      tags:
+      - Report
+      responses:
+        '200':
+          description: number of lost points
+        '404':
+          description: user not found
   "/api/v1/users":
     post:
       summary: Creates a user
