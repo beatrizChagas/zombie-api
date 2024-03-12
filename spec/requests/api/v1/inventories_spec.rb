@@ -126,4 +126,65 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
       end
     end
   end
+
+  path '/api/v1/users/{user_id}/transfer_items/{target_user_id}' do
+    parameter name: 'user_id', in: :path, type: :integer, description: 'user id'
+    parameter name: 'target_user_id', in: :path, type: :integer, description: 'target user id'
+
+    post 'Transfer items between users' do
+      tags 'Inventory'
+      consumes 'application/json'
+      parameter name: :inventory, in: :body, schema: {
+        type: :object,
+        properties: {
+          items: { type: :object },
+          target_user_items: { type: :object },
+          user_id: { type: :integer },
+          target_user_id: { type: :integer }
+        },
+        required: %w[items user_id]
+      }
+
+      let!(:user_id) { create(:user).id }
+      let!(:target_user_id) { create(:user).id }
+
+      response '200', 'items sucessfully transfered' do
+        let(:items) { { 'water' => { 'quantity' => 1 } } }
+        let(:target_user_item) { { 'food' => { 'quantity' => 1 } } }
+        let(:other_target_item) {{ 'ammunition' => { 'quantity' => 1 } }}
+        let(:new_inventory_item) {{ 'food' => { 'quantity' => 1 }, 'ammunition' => { 'quantity' => 1 } }}
+        let(:inventory_target) do
+          { 'items' => target_user_item, user_id: target_user_id,  }
+        end
+        let(:other_inventory_target) do
+          { 'items' => other_target_item, user_id: target_user_id }
+        end
+
+        let(:inventory) do
+          { 'items' => items, 'target_user_items' => new_inventory_item, user_id: user_id, target_user_id: target_user_id }
+        end
+
+        before { post "/api/v1/users/#{user_id}/inventory/add_item", params: inventory }
+        before { post "/api/v1/users/#{target_user_id}/inventory/add_item", params: inventory_target }
+        before { post "/api/v1/users/#{target_user_id}/inventory/add_item", params: other_inventory_target }
+
+        run_test! do |response|
+          data = response.parsed_body
+          expect(data['message']).to eq('Inventory items transferred successfully')
+        end
+      end
+
+      response '422', 'invalid request when user does not have item' do
+        let(:items) { { 'water' => { 'quantity' => 0 } } }
+        let(:target_user_items) { { 'water' => { 'quantity' => 2 } } }
+        let(:inventory) do
+          { 'items' => items, 'target_user_items' => target_user_items, user_id:, target_user_id: }
+        end
+
+        run_test! do |response|
+          expect(response.parsed_body['error']).to eq('User does not have enough items to transfer')
+        end
+      end
+    end
+  end
 end

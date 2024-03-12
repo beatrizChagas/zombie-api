@@ -97,6 +97,47 @@ paths:
               required:
               - items
               - user_id
+  "/api/v1/users/{user_id}/transfer_items/{target_user_id}":
+    parameters:
+    - name: user_id
+      in: path
+      description: user id
+      required: true
+      schema:
+        type: integer
+    - name: target_user_id
+      in: path
+      description: target user id
+      required: true
+      schema:
+        type: integer
+    post:
+      summary: Transfer items between users
+      tags:
+      - Inventory
+      parameters: []
+      responses:
+        '200':
+          description: items sucessfully transfered
+        '422':
+          description: invalid request when user does not have item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: object
+                target_user_items:
+                  type: object
+                user_id:
+                  type: integer
+                target_user_id:
+                  type: integer
+              required:
+              - items
+              - user_id
   "/api/v1/report/infected_users":
     get:
       summary: Infected users percentage
