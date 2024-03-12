@@ -36,6 +36,34 @@ class Inventory < ApplicationRecord
     average
   end
 
+  def transfer(target_user_items, target_user)
+    inventory_items = self.items
+    target_inventory = target_user.inventory
+
+    target_user_items.each do |key, value|
+      if target_inventory.items[key]
+        target_inventory.items[key]['quantity'] += value['quantity']
+      else
+        target_inventory.items[key] = {}
+        target_inventory.items[key]['quantity'] = value['quantity']
+      end
+
+      points = Inventory.calculate_point(key, target_inventory.items[key]['quantity'].to_i)
+      target_inventory.items[key]['points'] = points
+    end
+
+    inventory_items.each do |key, value|
+      return unless target_user_items[key]
+
+      inventory_items[key]['quantity'] -= target_user_items[key]['quantity']
+      points = Inventory.calculate_point(key, inventory_items[key]['quantity'].to_i)
+      inventory_items[key]['points'] = points
+    end
+
+    target_inventory.save
+    self.save
+  end
+
   private
 
   def self.total_quantity_per_user(items)

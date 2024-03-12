@@ -52,6 +52,31 @@ module Api
         end
       end
 
+      def transfer_items
+        user = User.find(params[:user_id])
+        target_user = User.find(params[:target_user_id])
+
+        user_items = params[:items]
+        target_user_items = params[:target_user_items]
+
+        if user_items_quantity_exist?(user.inventory,
+                                      user_items) && user_items_quantity_exist?(target_user.inventory,
+                                                                                target_user_items)
+          # Validate that both users negotiate the same number of points
+          unless same_points?(user_items, target_user_items)
+            render json: { error: 'Both users must negotiate the same number of points' }, status: :unprocessable_entity
+          end
+
+          # Transfer inventory items from user to target_user
+          user.inventory.transfer(user_items, target_user)
+          target_user.inventory.transfer(target_user_items, user)
+
+          render json: { message: 'Inventory items transferred successfully' }, status: :ok
+        else
+          render json: { error: 'User does not have enough items to transfer' }, status: :unprocessable_entity
+        end
+      end
+
       private
 
       def inventory_params
@@ -96,6 +121,32 @@ module Api
         return unless user.infected?
 
         render json: { error: 'You are not authorized to access add/remove items' }, status: :forbidden
+      end
+
+      def user_items_quantity_exist?(inventory, items)
+        items.each do |key, value|
+          return false unless inventory.items[key]
+          return false if inventory.items[key]['quantity'] < value['quantity']
+
+          return true
+        end
+      end
+
+      def same_points?(user_items, target_user_items)
+        user_points = 0
+        target_user_points = 0
+
+        user_items.keys.each do |key|
+          user_points += Inventory.calculate_point(key, user_items[key]['quantity'])
+        end
+
+        target_user_items.keys.each do |key|
+          target_user_points += Inventory.calculate_point(key, target_user_items[key]['quantity'])
+        end
+
+        return false if user_points != target_user_points
+
+        true
       end
     end
   end
