@@ -7,7 +7,8 @@ module Api
 
       before_action :check_user_access, only: %i[add_item remove_item]
 
-      # POST /users/:user_id/inventory/add_item
+      # POST /api/v1/users/:user_id/inventory/add_item
+      # Add items to inventory
       def add_item
         @inventory = Inventory.find_by(user_id: params[:user_id])
 
@@ -32,7 +33,8 @@ module Api
         end
       end
 
-      # POST /users/:user_id/inventory/remove_item
+      # POST /api/v1/users/:user_id/inventory/remove_item
+      # Remove items from inventory
       def remove_item
         @inventory = Inventory.find_by(user_id: params[:user_id])
 
@@ -52,6 +54,8 @@ module Api
         end
       end
 
+      # POST /api/v1/users/:user_id/transfers/:target_user_id
+      # Transfer items from one user to another
       def transfer_items
         user = User.find(params[:user_id])
         target_user = User.find(params[:target_user_id])
@@ -67,7 +71,7 @@ module Api
             render json: { error: 'Both users must negotiate the same number of points' }, status: :unprocessable_entity
           end
 
-          # Transfer inventory items from user to target_user
+          # Transfer inventory items from user to target_user and vice versa
           user.inventory.transfer(user_items, target_user)
           target_user.inventory.transfer(target_user_items, user)
 
