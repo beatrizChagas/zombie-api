@@ -3,7 +3,8 @@
 module Api
   module V1
     class UsersController < ApplicationController
-      # POST /users
+      # POST /api/v1/users
+      # Creates a new user
       def create
         @user = User.new(user_params)
 
@@ -14,7 +15,8 @@ module Api
         end
       end
 
-      # PUT /users/:id
+      # PUT /api/v1/users/:id
+      # Updates a user
       def update
         @user = User.find(params[:id])
 
