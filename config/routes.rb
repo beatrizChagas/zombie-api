@@ -10,6 +10,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :users, only: %i[create update] do
+        post 'transfer_items/:target_user_id', as: :transfer_items, to: 'inventories#transfer_items'
+
         resource :infection, only: :create
         resource :inventory, only: [] do
           member do
