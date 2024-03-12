@@ -25,6 +25,7 @@ Rails.application.routes.draw do
         get 'infected_users'
         get 'non_infected_users'
         get 'item_average_per_user'
+        get 'number_of_lost_points_by_infected_users'
       end
     end
   end
