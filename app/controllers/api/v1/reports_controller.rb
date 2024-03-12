@@ -5,7 +5,8 @@ module Api
     class ReportsController < ApplicationController
       before_action :users_count
 
-      # GET report/infected_users
+      # GET /api/v1/report/infected_users
+      # Returns the percentage of infected users
       def infected_users
         infected_users_count = Infection.infected_users_count
 
@@ -18,7 +19,8 @@ module Api
         end
       end
 
-      # GET report/non_infected_users
+      # GET /api/v1/report/non_infected_users
+      # Returns the percentage of non infected users
       def non_infected_users
         non_infected_users_count = Infection.non_infected_users_count
 
@@ -31,7 +33,8 @@ module Api
         end
       end
 
-      # GET report/item_average_per_user
+      # GET /api/v1/report/item_average_per_user
+      # Returns the average of items per user
       def item_average_per_user
         items_average = Inventory.average_items_quantity_per_user
 
@@ -42,6 +45,8 @@ module Api
         end
       end
 
+      # GET /api/v1/report/number_of_lost_points_by_infected_users
+      # Returns the total of lost points by infected users
       def number_of_lost_points_by_infected_users
         if @users > 0
           lost_points = Infection.lost_points
