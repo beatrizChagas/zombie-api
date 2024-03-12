@@ -3,7 +3,8 @@
 module Api
   module V1
     class InfectionsController < ApplicationController
-      # POST users/:user_id/infection
+      # POST /api/v1/users/:user_id/infection
+      # Reports an infected user
       def create
         @infection = Infection.new(infection_params)
 
