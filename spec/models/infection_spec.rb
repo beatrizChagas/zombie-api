@@ -20,4 +20,19 @@ RSpec.describe Infection, type: :model do
       expect(Infection.infected_users_count).to eq(1)
     end
   end
+
+  describe '.non_infected_users_count' do
+    it 'returns the number of non infected users' do
+      user = create(:user)
+      user2 = create(:user)
+      user3 = create(:user)
+      infected_user = create(:user)
+
+      create(:infection, user: user, infected_user: infected_user)
+      create(:infection, user: user2, infected_user: infected_user)
+      create(:infection, user: user3, infected_user: infected_user)
+
+      expect(Infection.non_infected_users_count).to eq(3)
+    end
+  end
 end
