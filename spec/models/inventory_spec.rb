@@ -20,4 +20,19 @@ RSpec.describe Inventory, type: :model do
       expect(Inventory.calculate_points('water', 1)).to eq(4)
     end
   end
+
+  describe '.average_items_quantity_per_user' do
+    it 'returns the average quantity of items per user' do
+      user = create(:user)
+      user2 = create(:user)
+
+      create(:inventory, user: user)
+      create(:inventory_with_items, user: user2)
+
+      expect(Inventory.average_items_quantity_per_user).to eq('ammunition' => 0.5,
+                                                              'food' => 0.5,
+                                                              'medicine' => 0.5,
+                                                              'water' => 2.0)
+    end
+  end
 end
