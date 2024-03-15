@@ -8,7 +8,7 @@ RSpec.describe 'api/v1/report/', type: :request do
       tags 'Report'
       consumes 'application/json'
 
-      response '200', 'returns 0.0% users infected' do
+      response '200', 'returns % users infected' do
         let(:user) { create(:user) }
         before { get '/api/v1/report/infected_users', params: user }
 
@@ -19,7 +19,7 @@ RSpec.describe 'api/v1/report/', type: :request do
         end
       end
 
-      response '404', 'user not found' do
+      response '404', 'invalid request when there are no users' do
         run_test!
       end
     end
@@ -30,7 +30,7 @@ RSpec.describe 'api/v1/report/', type: :request do
       tags 'Report'
       consumes 'application/json'
 
-      response '200', 'returns 100.0% non-infected users' do
+      response '200', 'returns % non-infected users' do
         let(:user) { create(:user) }
         before { get '/api/v1/report/non_infected_users', params: user }
 
@@ -41,7 +41,7 @@ RSpec.describe 'api/v1/report/', type: :request do
         end
       end
 
-      response '404', 'user not found' do
+      response '404', 'invalid request when there are no users' do
         run_test!
       end
     end
@@ -69,7 +69,7 @@ RSpec.describe 'api/v1/report/', type: :request do
         end
       end
 
-      response '404', 'user not found' do
+      response '404', 'invalid request when there are no users' do
         run_test!
       end
     end
@@ -101,7 +101,7 @@ RSpec.describe 'api/v1/report/', type: :request do
           end
         end
 
-        response '404', 'user not found' do
+        response '404', 'invalid request when there are no users' do
           run_test!
         end
       end
