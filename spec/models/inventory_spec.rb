@@ -57,4 +57,13 @@ RSpec.describe Inventory, type: :model do
                                          'water' => {'points' => 0, 'quantity' => 0},)
     end
   end
+
+  describe '#total_points' do
+    it 'returns the total points of the items' do
+      user = create(:user)
+      create(:inventory_with_items, user: user)
+
+      expect(user.inventory.total_points).to eq(18)
+    end
+  end
 end
