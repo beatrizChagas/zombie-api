@@ -3,6 +3,8 @@
 module Api
   module V1
     class ReportsController < ApplicationController
+      include JsonResponse
+
       before_action :users_count
 
       # GET /api/v1/report/infected_users
@@ -13,9 +15,9 @@ module Api
         if @users > 0
           percentage = (infected_users_count.to_f / @users) * 100
 
-          render json: { Percentage: percentage }, status: :ok
+          render_percentage(percentage, :ok)
         else
-          render json: { error: 'No users found' }, status: :not_found
+          render_error('No users found', :not_found)
         end
       end
 
@@ -27,9 +29,9 @@ module Api
         if @users > 0
           percentage = (non_infected_users_count.to_f / @users) * 100
 
-          render json: { Percentage: percentage }, status: :ok
+          render_percentage(percentage, :ok)
         else
-          render json: { error: 'No users found' }, status: :not_found
+          render_error('No users found', :not_found)
         end
       end
 
@@ -39,9 +41,9 @@ module Api
         items_average = Inventory.average_items_quantity_per_user
 
         if @users > 0
-          render json: { 'Items average': items_average }, status: :ok
+          render_custom_json({ 'Items average': items_average }, :ok)
         else
-          render json: { error: 'No users found' }, status: :not_found
+          render_error('No users found', :not_found)
         end
       end
 
@@ -51,9 +53,9 @@ module Api
         if @users > 0
           lost_points = Infection.lost_points
 
-          render json: { 'Total lost points': lost_points }, status: :ok
+          render_custom_json({ 'Total lost points': lost_points }, :ok)
         else
-          render json: { error: 'No users found' }, status: :not_found
+          render_error('No users found', :not_found)
         end
       end
 
