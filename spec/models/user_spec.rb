@@ -5,6 +5,7 @@ require 'rails_helper'
 RSpec.describe User, type: :model do
   describe 'associations' do
     it { should have_one(:inventory) }
+    it { should have_many(:infection) }
   end
 
   describe 'validations' do
