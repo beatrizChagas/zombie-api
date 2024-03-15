@@ -84,4 +84,22 @@ RSpec.describe Inventory, type: :model do
       expect(inventory.items_permitted_key?(items)).to be_falsy
     end
   end
+
+  describe '#has_enough_items?(items)' do
+    it 'returns true if the user has enough items' do
+      user = create(:user)
+      inventory = create(:inventory_with_items, user: user)
+      items = { 'water' => { 'quantity' => 1 } }
+
+      expect(inventory.has_enough_items?(items)).to be_truthy
+    end
+
+    it 'returns false if the user does not have enough items' do
+      user = create(:user)
+      inventory = create(:inventory, user: user)
+      items = { 'water' => { 'quantity' => 2 } }
+
+      expect(inventory.has_enough_items?(items)).to be_falsy
+    end
+  end
 end
