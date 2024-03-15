@@ -102,4 +102,14 @@ RSpec.describe Inventory, type: :model do
       expect(inventory.has_enough_items?(items)).to be_falsy
     end
   end
+
+  describe '#negotiate_points' do
+    it 'returns the points of the items' do
+      user = create(:user)
+      inventory = create(:inventory, user: user)
+      items = { 'water' => { 'quantity' => 1 } }
+
+      expect(inventory.negotiate_points(items)).to eq(4)
+    end
+  end
 end
