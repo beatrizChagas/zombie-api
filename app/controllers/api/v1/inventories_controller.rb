@@ -4,6 +4,7 @@ module Api
   module V1
     class InventoriesController < ApplicationController
       include InventoryHelper
+      include JsonResponse
 
       before_action :find_user_and_inventory, only: %i[add_item remove_item transfer_items]
       before_action :find_target_user_and_inventory, only: [:transfer_items]
@@ -18,9 +19,9 @@ module Api
         if !items.empty?
           update_inventory(items)
 
-          render json: InventoryBlueprint.render(@inventory), status: :created
+          render_blueprint(InventoryBlueprint, @inventory, :created)
         else
-          render json: { error: 'Items cannot be empty' }, status: :unprocessable_entity
+          render_error('Items cannot be empty', :unprocessable_entity)
         end
       end
 
@@ -32,9 +33,9 @@ module Api
         if !items.empty?
           update_decrement_quantity(items)
 
-          render json: InventoryBlueprint.render(@inventory), status: :ok
+          render_blueprint(InventoryBlueprint, @inventory, :ok)
         else
-          render json: { error: 'Items cannot be empty' }, status: :unprocessable_entity
+          render_error('Items cannot be empty', :unprocessable_entity)
         end
       end
 
@@ -49,12 +50,12 @@ module Api
           if enough_items_to_transfer?(user_items, target_user_items) && negotiate_same_number_of_points?(user_items, target_user_items)
             transfer_inventory_items(user_items, target_user_items)
 
-            render json: { message: 'Inventory items transferred successfully' }, status: :ok
+            render_success('Inventory items transferred successfully', :ok)
           else
-            render json: { error: 'User does not have enough items to transfer' }, status: :unprocessable_entity
+            render_error('User does not have enough items to transfer', :unprocessable_entity)
           end
         else
-          render json: { error: 'Items cannot be empty' }, status: :unprocessable_entity
+          render_error('Items cannot be empty', :unprocessable_entity)
         end
       end
 
@@ -84,20 +85,20 @@ module Api
       def check_user_access
         if @user
           if @user.infected?
-            render json: { error: 'You are not authorized to add/remove items' }, status: :forbidden
+            render_error('You are not authorized to add/remove items', :forbidden)
           end
         else
-          render json: { error: 'User not found' }, status: :not_found
+          render_error('User not found', :not_found)
         end
       end
 
       def check_target_user_access
         if @target_user
           if @target_user.infected?
-            render json: { error: 'You are not authorized to transfer items' }, status: :forbidden
+            render_error('You are not authorized to transfer items', :forbidden)
           end
         else
-          render json: { error: 'Target user not found' }, status: :not_found
+          render_error('Target user not found', :not_found)
         end
       end
 
