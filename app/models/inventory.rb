@@ -76,7 +76,7 @@ class Inventory < ApplicationRecord
     total_points
   end
 
-  def items_permited_key?(items)
+  def items_permitted_key?(items)
     items.keys.each do |key|
       return false unless PERMITTED_ITEMS.include?(key)
     end
