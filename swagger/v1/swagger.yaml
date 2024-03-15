@@ -50,7 +50,9 @@ paths:
       parameters: []
       responses:
         '201':
-          description: water quantity sucessfully increased
+          description: adding 2 or more items
+        '404':
+          description: invalid request when user does not exist
         '422':
           description: invalid request when item key is not permitted
       requestBody:
@@ -81,7 +83,9 @@ paths:
       parameters: []
       responses:
         '200':
-          description: water quantity sucessfully decreased
+          description: remove 2 or more items
+        '404':
+          description: invalid request when user does not exist
         '422':
           description: invalid request when item key is not permitted
       requestBody:
@@ -119,6 +123,8 @@ paths:
       responses:
         '200':
           description: items sucessfully transfered
+        '404':
+          description: invalid request when user does not exist
         '422':
           description: invalid request when user does not have item
       requestBody:
@@ -145,9 +151,9 @@ paths:
       - Report
       responses:
         '200':
-          description: returns 0.0% users infected
+          description: returns % users infected
         '404':
-          description: user not found
+          description: invalid request when there are no users
   "/api/v1/report/non_infected_users":
     get:
       summary: Non-Infected users percentage
@@ -155,9 +161,9 @@ paths:
       - Report
       responses:
         '200':
-          description: returns 100.0% non-infected users
+          description: returns % non-infected users
         '404':
-          description: user not found
+          description: invalid request when there are no users
   "/api/v1/report/item_average_per_user":
     get:
       summary: Average items per user
@@ -167,7 +173,7 @@ paths:
         '200':
           description: average items users
         '404':
-          description: user not found
+          description: invalid request when there are no users
   "/api/v1/report/number_of_lost_points_by_infected_users":
     get:
       summary: Number of lost points by infected users
@@ -177,7 +183,7 @@ paths:
         '200':
           description: number of lost points
         '404':
-          description: user not found
+          description: invalid request when there are no users
   "/api/v1/users":
     post:
       summary: Creates a user
