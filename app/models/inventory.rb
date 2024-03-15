@@ -9,7 +9,7 @@ class Inventory < ApplicationRecord
 
   before_save :update_points
 
-  def self.calculate_point(item_key, item_quantity)
+  def self.calculate_points(item_key, item_quantity)
     case item_key
     when 'water'
       item_quantity * 4
@@ -49,7 +49,7 @@ class Inventory < ApplicationRecord
         target_inventory.items[key]['quantity'] = value['quantity']
       end
 
-      points = Inventory.calculate_point(key, target_inventory.items[key]['quantity'].to_i)
+      points = Inventory.calculate_points(key, target_inventory.items[key]['quantity'].to_i)
       target_inventory.items[key]['points'] = points
     end
 
@@ -58,7 +58,7 @@ class Inventory < ApplicationRecord
       return unless target_user_items[key]
 
       inventory_items[key]['quantity'] -= target_user_items[key]['quantity']
-      points = Inventory.calculate_point(key, inventory_items[key]['quantity'].to_i)
+      points = Inventory.calculate_points(key, inventory_items[key]['quantity'].to_i)
       inventory_items[key]['points'] = points
     end
 
@@ -70,7 +70,7 @@ class Inventory < ApplicationRecord
     total_points = 0
 
     items.each do |key, value|
-      total_points += Inventory.calculate_point(key, value['quantity'])
+      total_points += Inventory.calculate_points(key, value['quantity'])
     end
 
     total_points
@@ -94,7 +94,7 @@ class Inventory < ApplicationRecord
     points = 0
 
     items.each_key do |key|
-      points += Inventory.calculate_point(key, items[key]['quantity'])
+      points += Inventory.calculate_points(key, items[key]['quantity'])
     end
 
     points
@@ -118,7 +118,7 @@ class Inventory < ApplicationRecord
 
   def update_points
     items.each do |key, value|
-      points = Inventory.calculate_point(key, value['quantity'].to_i)
+      points = Inventory.calculate_points(key, value['quantity'].to_i)
       items[key]['points'] = points
     end
   end
