@@ -5,79 +5,56 @@ module Api
     class InventoriesController < ApplicationController
       include InventoryHelper
 
-      before_action :check_user_access, only: %i[add_item remove_item]
+      before_action :find_user_and_inventory, only: %i[add_item remove_item transfer_items]
+      before_action :find_target_user_and_inventory, only: [:transfer_items]
+      before_action :check_user_access, only: %i[add_item remove_item transfer_items]
+      before_action :check_target_user_access, only: [:transfer_items]
 
       # POST /api/v1/users/:user_id/inventory/add_item
       # Add items to inventory
       def add_item
-        @inventory = Inventory.find_by(user_id: params[:user_id])
+        items = inventory_params['items']
 
-        if @inventory && item_permited_key?
-          if item_exists?
-            increment_quantity(params[:items][key][:quantity])
-          else
-            @inventory.items.update(inventory_params['items'])
-          end
+        if !items.empty?
+          update_inventory(items)
 
-          update_item_quantity
-          update_item_points
-
-          if @inventory.save
-            render json: InventoryBlueprint.render(@inventory), status: :created
-          else
-            render @inventory.errors, status: :unprocessable_entity
-          end
+          render json: InventoryBlueprint.render(@inventory), status: :created
         else
-          render json: { error: 'Inventory not found or item not permitted' },
-                 status: :unprocessable_entity
+          render json: { error: 'Items cannot be empty' }, status: :unprocessable_entity
         end
       end
 
       # POST /api/v1/users/:user_id/inventory/remove_item
       # Remove items from inventory
       def remove_item
-        @inventory = Inventory.find_by(user_id: params[:user_id])
+        items = inventory_params['items']
 
-        if @inventory && item_exists?
-          decrement_quantity(params[:items][key][:quantity])
+        if !items.empty?
+          update_decrement_quantity(items)
 
-          update_item_points
-
-          if @inventory.save
-            render json: InventoryBlueprint.render(@inventory), status: :ok
-          else
-            render @inventory.errors, status: :unprocessable_entity
-          end
+          render json: InventoryBlueprint.render(@inventory), status: :ok
         else
-          render json: { error: 'Inventory not found or item does not exist' },
-                 status: :unprocessable_entity
+          render json: { error: 'Items cannot be empty' }, status: :unprocessable_entity
         end
       end
 
       # POST /api/v1/users/:user_id/transfers/:target_user_id
       # Transfer items from one user to another
       def transfer_items
-        user = User.find(params[:user_id])
-        target_user = User.find(params[:target_user_id])
+        user_items = inventory_params['items']
+        target_user_items = inventory_params['target_user_items']
 
-        user_items = params[:items]
-        target_user_items = params[:target_user_items]
+        if !user_items.empty? || !target_user_items.empty?
+          # Validate if user has enough items to transfer and if the points are the same
+          if enough_items_to_transfer?(user_items, target_user_items) && negotiate_same_number_of_points?(user_items, target_user_items)
+            transfer_inventory_items(user_items, target_user_items)
 
-        if user_items_quantity_exist?(user.inventory,
-                                      user_items) && user_items_quantity_exist?(target_user.inventory,
-                                                                                target_user_items)
-          # Validate that both users negotiate the same number of points
-          unless same_points?(user_items, target_user_items)
-            render json: { error: 'Both users must negotiate the same number of points' }, status: :unprocessable_entity
+            render json: { message: 'Inventory items transferred successfully' }, status: :ok
+          else
+            render json: { error: 'User does not have enough items to transfer' }, status: :unprocessable_entity
           end
-
-          # Transfer inventory items from user to target_user and vice versa
-          user.inventory.transfer(user_items, target_user)
-          target_user.inventory.transfer(target_user_items, user)
-
-          render json: { message: 'Inventory items transferred successfully' }, status: :ok
         else
-          render json: { error: 'User does not have enough items to transfer' }, status: :unprocessable_entity
+          render json: { error: 'Items cannot be empty' }, status: :unprocessable_entity
         end
       end
 
@@ -87,70 +64,75 @@ module Api
         params.permit(items: { water: [:quantity],
                                food: [:quantity],
                                medicine: [:quantity],
+                               ammunition: [:quantity] },
+                      target_user_items: { water: [:quantity],
+                               food: [:quantity],
+                               medicine: [:quantity],
                                ammunition: [:quantity] })
       end
 
-      def update_item_quantity
-        @inventory.items[key]['quantity'] = @inventory.items[key]['quantity'].to_i
+      def find_user_and_inventory
+        @user = User.find_by(id: params[:user_id])
+        @inventory = Inventory.find_by(user_id: params[:user_id])
       end
 
-      def update_item_points
-        points = Inventory.calculate_point(key, @inventory['items'][key]['quantity'].to_i)
-
-        @inventory.items[key]['points'] = points
-      end
-
-      def key
-        params[:items].keys.first
-      end
-
-      def item_permited_key?
-        PERMITTED_ITEMS.include?(params[:items].keys.first)
-      end
-
-      def item_exists?
-        @inventory.items.include?(params[:items].keys.first)
-      end
-
-      def increment_quantity(value)
-        @inventory.items[key]['quantity'] += value
-      end
-
-      def decrement_quantity(value)
-        @inventory.items[key]['quantity'] -= value
+      def find_target_user_and_inventory
+        @target_user = User.find_by(id: params[:target_user_id])
+        @target_inventory = Inventory.find_by(user_id: params[:target_user_id])
       end
 
       def check_user_access
-        user = User.find(params[:user_id])
-        return unless user.infected?
-
-        render json: { error: 'You are not authorized to access add/remove items' }, status: :forbidden
+        if @user
+          if @user.infected?
+            render json: { error: 'You are not authorized to add/remove items' }, status: :forbidden
+          end
+        else
+          render json: { error: 'User not found' }, status: :not_found
+        end
       end
 
-      def user_items_quantity_exist?(inventory, items)
+      def check_target_user_access
+        if @target_user
+          if @target_user.infected?
+            render json: { error: 'You are not authorized to transfer items' }, status: :forbidden
+          end
+        else
+          render json: { error: 'Target user not found' }, status: :not_found
+        end
+      end
+
+      def update_inventory(items)
         items.each do |key, value|
-          return false unless inventory.items[key]
-          return false if inventory.items[key]['quantity'] < value['quantity']
-
-          return true
+          @inventory.items[key] ||= { 'quantity' => 0 }
+          @inventory.items[key]['quantity'] += value['quantity'].to_i
         end
+
+        @inventory.save
       end
 
-      def same_points?(user_items, target_user_items)
-        user_points = 0
-        target_user_points = 0
+      def increment_quantity(key, value)
+        @inventory.items[key]['quantity'] += value['quantity'].to_i
+      end
 
-        user_items.keys.each do |key|
-          user_points += Inventory.calculate_point(key, user_items[key]['quantity'])
+      def update_decrement_quantity(items)
+        items.each do |key, value|
+          @inventory.items[key]['quantity'] -= value['quantity']
         end
 
-        target_user_items.keys.each do |key|
-          target_user_points += Inventory.calculate_point(key, target_user_items[key]['quantity'])
-        end
+        @inventory.save
+      end
 
-        return false if user_points != target_user_points
+      def enough_items_to_transfer?(user_items, target_user_items)
+        @inventory.has_enough_items?(user_items) && @target_inventory.has_enough_items?(target_user_items)
+      end
 
-        true
+      def negotiate_same_number_of_points?(user_items, target_user_items)
+        @inventory.negotiate_points(user_items) == @target_inventory.negotiate_points(target_user_items)
+      end
+
+      def transfer_inventory_items(user_items, target_user_items)
+        @user.inventory.transfer(user_items, @target_user)
+        @target_user.inventory.transfer(target_user_items, @user)
       end
     end
   end

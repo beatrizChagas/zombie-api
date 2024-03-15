@@ -7,6 +7,5 @@ RSpec.describe Inventory, type: :model do
 
   describe 'validations' do
     it { should validate_length_of(:items) }
-    it { should serialize(:items) }
   end
 end

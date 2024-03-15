@@ -5,21 +5,21 @@ class Inventory < ApplicationRecord
 
   belongs_to :user
 
-  serialize :items, coder: JSON, type: Hash, default: {}
+  validates :user_id, presence: true
+
+  before_save :update_points
 
   def self.calculate_point(item_key, item_quantity)
-    @point = case item_key
-             when 'water'
-               item_quantity * 4
-             when 'food'
-               item_quantity * 3
-             when 'medicine'
-               item_quantity * 2
-             when 'ammunition'
-               item_quantity * 1
-             end
-
-    @point
+    case item_key
+    when 'water'
+      item_quantity * 4
+    when 'food'
+      item_quantity * 3
+    when 'medicine'
+      item_quantity * 2
+    when 'ammunition'
+      item_quantity * 1
+    end
   end
 
   def self.average_items_quantity_per_user
@@ -40,6 +40,7 @@ class Inventory < ApplicationRecord
     inventory_items = self.items
     target_inventory = target_user.inventory
 
+    # transfer items to target user
     target_user_items.each do |key, value|
       if target_inventory.items[key]
         target_inventory.items[key]['quantity'] += value['quantity']
@@ -52,6 +53,7 @@ class Inventory < ApplicationRecord
       target_inventory.items[key]['points'] = points
     end
 
+    # remove items from inventory
     inventory_items.each do |key, value|
       return unless target_user_items[key]
 
@@ -74,6 +76,30 @@ class Inventory < ApplicationRecord
     total_points
   end
 
+  def items_permited_key?(items)
+    items.keys.each do |key|
+      return false unless PERMITTED_ITEMS.include?(key)
+    end
+  end
+
+  def has_enough_items?(items)
+    items.each do |key, value|
+      return false unless self.items[key] && self.items[key]['quantity'] >= value['quantity']
+    end
+
+    true
+  end
+
+  def negotiate_points(items)
+    points = 0
+
+    items.each_key do |key|
+      points += Inventory.calculate_point(key, items[key]['quantity'])
+    end
+
+    points
+  end
+
   private
 
   def self.total_quantity_per_user(items)
@@ -88,5 +114,12 @@ class Inventory < ApplicationRecord
     end
 
     total_quantity
+  end
+
+  def update_points
+    items.each do |key, value|
+      points = Inventory.calculate_point(key, value['quantity'].to_i)
+      items[key]['points'] = points
+    end
   end
 end

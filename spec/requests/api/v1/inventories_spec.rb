@@ -18,9 +18,8 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
         required: %w[items user_id]
       }
 
-      let!(:user_id) { create(:user).id }
-
       response '201', 'water sucessfully added to inventory' do
+        let(:user_id) { create(:user).id }
         let(:items) {{ water: {quantity: 1} }}
         let(:inventory) { { items: items, user_id: user_id } }
 
@@ -32,6 +31,7 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
       end
 
       response '201', 'food sucessfully added to inventory' do
+        let(:user_id) { create(:user).id }
         let(:items) {{ food: {quantity: 1} }}
         let(:inventory) { { items: items, user_id: user_id } }
 
@@ -43,6 +43,7 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
       end
 
       response '201', 'medicine sucessfully added to inventory' do
+        let(:user_id) { create(:user).id }
         let(:items) {{ medicine: {quantity: 1} }}
         let(:inventory) { { items: items, user_id: user_id } }
 
@@ -54,6 +55,7 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
       end
 
       response '201', 'ammunition sucessfully added to inventory' do
+        let(:user_id) { create(:user).id }
         let(:items) {{ ammunition: {quantity: 1} }}
         let(:inventory) { { items: items, user_id: user_id } }
 
@@ -65,6 +67,7 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
       end
 
       response '201', 'water quantity sucessfully increased' do
+        let(:user_id) { create(:user).id }
         let(:items) {{ water: {quantity: 1} }}
         let(:inventory) { create(:inventory) }
 
@@ -79,11 +82,43 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
         end
       end
 
+      response '201', 'adding 2 or more items' do
+        let(:user_id) { create(:user).id }
+        let(:items) { { water: { quantity: 2 } } }
+        let(:another_items) {{ water: { quantity: 1 }, food: { quantity: 1 } } }
+        let(:old_inventory) { { items: items, user_id: user_id } }
+
+        let(:inventory) { { items: another_items, user_id: user_id } }
+
+        before { post "/api/v1/users/#{user_id}/inventory/add_item", params: old_inventory }
+
+        run_test! do |response|
+          data = response.parsed_body['items']
+          expect(data['water']['quantity']).to eq(3)
+          expect(data['water']['points']).to eq(12)
+          expect(data['food']['quantity']).to eq(1)
+          expect(data['food']['points']).to eq(3)
+        end
+      end
+
+      response '404', 'invalid request when user does not exist' do
+        let(:user_id) { 0 }
+        let(:items) {{ water: {quantity: 1} }}
+        let(:inventory) { { items: items, user_id: user_id } }
+
+        run_test! do |response|
+          expect(response.parsed_body['error']).to eq('User not found')
+        end
+      end
+
       response '422', 'invalid request when item key is not permitted' do
+        let(:user_id) { create(:user).id }
         let(:items) {{ non_defined_item: {quantity: 1} }}
         let(:inventory) { { items: items, user_id: user_id } }
 
-        run_test!
+        run_test! do |response|
+          expect(response.parsed_body['error']).to eq('Items cannot be empty')
+        end
       end
     end
   end
@@ -103,9 +138,8 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
         required: %w[items user_id]
       }
 
-      let!(:user_id) { create(:user).id }
-
       response '200', 'water quantity sucessfully decreased' do
+        let(:user_id) { create(:user).id }
         let(:items) {{ 'water' => {'quantity' => 2} }}
         let(:inventory) { { 'items' => items, user_id: user_id } }
 
@@ -118,11 +152,43 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
         end
       end
 
+      response '200', 'remove 2 or more items' do
+        let(:user_id) { create(:user).id }
+        let(:items) { { water: { quantity: 2 }, food: { quantity: 2 } } }
+        let(:another_items) {{ water: { quantity: 1 }, food: { quantity: 1 } } }
+        let(:old_inventory) { { items: items, user_id: user_id } }
+
+        let(:inventory) { { items: another_items, user_id: user_id } }
+
+        before { post "/api/v1/users/#{user_id}/inventory/add_item", params: old_inventory }
+
+        run_test! do |response|
+          data = response.parsed_body['items']
+          expect(data['water']['quantity']).to eq(1)
+          expect(data['water']['points']).to eq(4)
+          expect(data['food']['quantity']).to eq(1)
+          expect(data['food']['points']).to eq(3)
+        end
+      end
+
+      response '404', 'invalid request when user does not exist' do
+        let(:user_id) { 0 }
+        let(:items) {{ water: {quantity: 1} }}
+        let(:inventory) { { items: items, user_id: user_id } }
+
+        run_test! do |response|
+          expect(response.parsed_body['error']).to eq('User not found')
+        end
+      end
+
       response '422', 'invalid request when item key is not permitted' do
+        let(:user_id) { create(:user).id }
         let(:items) {{ non_defined_item: {quantity: 1} }}
         let(:inventory) { { items: items, user_id: user_id } }
 
-        run_test!
+        run_test! do |response|
+          expect(response.parsed_body['error']).to eq('Items cannot be empty')
+        end
       end
     end
   end
@@ -145,23 +211,22 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
         required: %w[items user_id]
       }
 
-      let!(:user_id) { create(:user).id }
-      let!(:target_user_id) { create(:user).id }
-
       response '200', 'items sucessfully transfered' do
-        let(:items) { { 'water' => { 'quantity' => 1 } } }
-        let(:target_user_item) { { 'food' => { 'quantity' => 1 } } }
-        let(:other_target_item) {{ 'ammunition' => { 'quantity' => 1 } }}
-        let(:new_inventory_item) {{ 'food' => { 'quantity' => 1 }, 'ammunition' => { 'quantity' => 1 } }}
+        let(:user_id) { create(:user).id }
+        let(:target_user_id) { create(:user).id }
+        let(:items) { { water: { quantity: 1 } } }
+        let(:target_user_item) { { food: { quantity: 1 } } }
+        let(:other_target_item) {{ ammunition: { quantity: 1 } }}
+        let(:new_inventory_item) {{ food: { quantity: 1 }, ammunition: { quantity: 1 } }}
         let(:inventory_target) do
-          { 'items' => target_user_item, user_id: target_user_id,  }
+          { items: target_user_item, user_id: target_user_id  }
         end
         let(:other_inventory_target) do
-          { 'items' => other_target_item, user_id: target_user_id }
+          { items: other_target_item, user_id: target_user_id }
         end
 
         let(:inventory) do
-          { 'items' => items, 'target_user_items' => new_inventory_item, user_id: user_id, target_user_id: target_user_id }
+          { items: items, target_user_items: new_inventory_item, user_id: user_id, target_user_id: target_user_id }
         end
 
         before { post "/api/v1/users/#{user_id}/inventory/add_item", params: inventory }
@@ -174,7 +239,23 @@ RSpec.describe 'api/v1/user/{user_id}/inventory/', type: :request do
         end
       end
 
+      response '404', 'invalid request when user does not exist' do
+        let(:user_id) { 0 }
+        let(:target_user_id) { create(:user).id }
+        let(:items) { { 'water' => { 'quantity' => 1 } } }
+        let(:target_user_items) { { 'food' => { 'quantity' => 1 } } }
+        let(:inventory) do
+          { 'items' => items, 'target_user_items' => target_user_items, user_id: 0, target_user_id: target_user_id }
+        end
+
+        run_test! do |response|
+          expect(response.parsed_body['error']).to eq('User not found')
+        end
+      end
+
       response '422', 'invalid request when user does not have item' do
+        let(:user_id) { create(:user).id }
+        let(:target_user_id) { create(:user).id }
         let(:items) { { 'water' => { 'quantity' => 0 } } }
         let(:target_user_items) { { 'water' => { 'quantity' => 2 } } }
         let(:inventory) do
