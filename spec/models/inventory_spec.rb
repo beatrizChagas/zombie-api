@@ -35,4 +35,26 @@ RSpec.describe Inventory, type: :model do
                                                               'water' => 2.0)
     end
   end
+
+  describe '#transfer' do
+    it 'transfers items to target user' do
+      user = create(:user)
+      user2 = create(:user)
+
+      create(:inventory_with_items, user: user)
+      create(:inventory, user: user2)
+
+      user.inventory.transfer(user.inventory.items, user2)
+
+      expect(user2.inventory.items).to eq('ammunition' => { 'quantity' => 1, 'points' => 1 },
+                                          'food' => { 'quantity' => 1, 'points' => 3 },
+                                          'medicine' => { 'quantity' => 1, 'points' => 2 },
+                                          'water' => { 'quantity' => 4, 'points' => 16 })
+
+      expect(user.inventory.items).to eq('ammunition' => {'points' => 0, 'quantity' => 0},
+                                         'food' => {'points' => 0, 'quantity' => 0},
+                                         'medicine' => {'points' => 0, 'quantity' => 0},
+                                         'water' => {'points' => 0, 'quantity' => 0},)
+    end
+  end
 end
