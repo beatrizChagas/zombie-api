@@ -21,8 +21,6 @@ class Infection < ApplicationRecord
   private
 
   def self.infected_user_ids
-    infected_users = group(:infected_user_id).distinct.count(:user_id)
-
-    infected_users.select { |infected_user_id, count| count >= 3 }.keys
+    group(:infected_user_id).having("COUNT(DISTINCT user_id) >= 3").pluck(:infected_user_id)
   end
 end
