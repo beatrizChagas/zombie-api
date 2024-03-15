@@ -66,4 +66,22 @@ RSpec.describe Inventory, type: :model do
       expect(user.inventory.total_points).to eq(18)
     end
   end
+
+  describe '#items_permitted_key?(items)' do
+    it 'returns true if the items are permitted' do
+      user = create(:user)
+      inventory = create(:inventory, user: user)
+      items = { 'water' => { 'quantity' => 1 } }
+
+      expect(inventory.items_permitted_key?(items)).to be_truthy
+    end
+
+    it 'returns false if the items are not permitted' do
+      user = create(:user)
+      inventory = create(:inventory, user: user)
+      items = { 'invalid' => { 'quantity' => 1 } }
+
+      expect(inventory.items_permitted_key?(items)).to be_falsy
+    end
+  end
 end
